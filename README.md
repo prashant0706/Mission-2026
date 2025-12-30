@@ -5,7 +5,7 @@
 ---
 
 ## 📑 Table of Contents
-0. [Java Fundamentals](#0-java-fundamentals)
+0. [Java Fundamentals](#0-java-fundamentals) ⭐ NEW
 1. [Maven Basics](#1-maven-basics)
 2. [Selenium Fundamentals](#2-selenium-fundamentals)
 3. [TestNG Framework](#3-testng-framework)
@@ -1070,6 +1070,484 @@ src/
 
 ### Locator Priority
 1. ID → 2. Name → 3. CSS → 4. XPath
+
+---
+
+## 11. Interview Questions & Answers 🎯
+
+### 📌 How to Answer Interview Questions
+
+**STAR Method** (for behavioral questions):
+- **S**ituation: Describe the context
+- **T**ask: What was your responsibility
+- **A**ction: What you did
+- **R**esult: The outcome
+
+**Technical Questions**: Be specific, give examples, mention real projects!
+
+---
+
+### 🔷 Java Interview Questions
+
+#### Q1: What is the difference between `==` and `.equals()` in Java?
+**Answer:**
+> "`==` compares **memory references** (whether two variables point to the same object in memory), while `.equals()` compares the **actual content/values** of objects.
+>
+> For example, with Strings:
+> ```java
+> String a = new String("hello");
+> String b = new String("hello");
+> a == b       // false (different objects in memory)
+> a.equals(b)  // true (same content)
+> ```
+> In my Selenium tests, I always use `.equals()` when comparing text from web elements."
+
+---
+
+#### Q2: What is the difference between `public`, `private`, and `protected`?
+**Answer:**
+> "These are **access modifiers** that control visibility:
+> - `public`: Accessible from anywhere
+> - `private`: Only within the same class
+> - `protected`: Same class + subclasses + same package
+> - Default (no modifier): Same package only
+>
+> In Page Object Model, I typically make locators `private` and methods `public`, following encapsulation principles."
+
+---
+
+#### Q3: What is Object-Oriented Programming (OOP)?
+**Answer:**
+> "OOP is a programming paradigm based on 4 pillars:
+> 1. **Encapsulation**: Hiding internal details (private variables, public getters/setters)
+> 2. **Inheritance**: Child classes inherit from parent classes (`extends`)
+> 3. **Polymorphism**: Same method behaving differently (method overriding)
+> 4. **Abstraction**: Hiding complexity, showing only essential features (interfaces)
+>
+> In my framework, I use inheritance with BasePage and BaseTest classes, and all page classes extend them."
+
+---
+
+#### Q4: What is the difference between `interface` and `abstract class`?
+**Answer:**
+> "An **interface** defines a contract with only method signatures (what to do), while an **abstract class** can have both abstract methods and implemented methods (how to do it).
+>
+> - Interface: `implements`, 100% abstraction, multiple interfaces allowed
+> - Abstract class: `extends`, 0-100% abstraction, only one parent allowed
+>
+> `WebDriver` is an interface - ChromeDriver and FirefoxDriver implement it."
+
+---
+
+#### Q5: What is exception handling? What are `try`, `catch`, `finally`?
+**Answer:**
+> "`try` block contains code that might throw an exception. `catch` block handles specific exceptions. `finally` block always executes for cleanup.
+>
+> ```java
+> try {
+>     driver.findElement(By.id("invalid")).click();
+> } catch (NoSuchElementException e) {
+>     System.out.println("Element not found");
+> } finally {
+>     driver.quit();  // Always runs
+> }
+> ```
+> In my framework, I use try-catch in utility methods and take screenshots in catch blocks."
+
+---
+
+#### Q6: What is the difference between `ArrayList` and `Array`?
+**Answer:**
+> "Arrays have **fixed size** declared at creation. ArrayList is **dynamic** and can grow or shrink.
+>
+> ```java
+> int[] arr = new int[5];          // Fixed size 5
+> ArrayList<Integer> list = new ArrayList<>();  // Dynamic
+> list.add(1);  // Can keep adding
+> ```
+> In Selenium, `findElements()` returns a List, not an array."
+
+---
+
+### 🔷 Selenium Interview Questions
+
+#### Q1: What is Selenium WebDriver?
+**Answer:**
+> "Selenium WebDriver is a **browser automation tool** that provides APIs to interact with web browsers programmatically. It supports multiple browsers (Chrome, Firefox, Edge) and multiple languages (Java, Python, C#).
+>
+> WebDriver directly communicates with the browser using browser-specific drivers like ChromeDriver."
+
+---
+
+#### Q2: What are the different types of locators in Selenium?
+**Answer:**
+> "Selenium provides 8 locator types:
+> 1. **ID** (fastest, most reliable)
+> 2. **Name**
+> 3. **Class Name**
+> 4. **Tag Name**
+> 5. **Link Text** (for anchor tags)
+> 6. **Partial Link Text**
+> 7. **CSS Selector** (flexible, fast)
+> 8. **XPath** (most powerful, can traverse DOM)
+>
+> I prioritize ID first, then CSS Selector, and use XPath only when necessary."
+
+---
+
+#### Q3: What is the difference between `findElement()` and `findElements()`?
+**Answer:**
+> "`findElement()` returns a **single WebElement** and throws `NoSuchElementException` if not found.
+>
+> `findElements()` returns a **List of WebElements** and returns an empty list (not exception) if none found.
+>
+> I use `findElements().size() > 0` to check if an element exists without throwing exceptions."
+
+---
+
+#### Q4: What are the different types of waits in Selenium?
+**Answer:**
+> "There are 3 types:
+>
+> 1. **Implicit Wait**: Global wait, applies to all findElement calls
+>    ```java
+>    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+>    ```
+>
+> 2. **Explicit Wait**: Waits for specific condition
+>    ```java
+>    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+>    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("element")));
+>    ```
+>
+> 3. **Fluent Wait**: Explicit wait with polling interval and exception ignoring
+>
+> I prefer Explicit Wait because it's more precise and efficient."
+
+---
+
+#### Q5: What is Page Object Model (POM)?
+**Answer:**
+> "POM is a **design pattern** where each web page has a corresponding Java class. The class contains:
+> - Element locators (private)
+> - Page actions as methods (public)
+>
+> Benefits:
+> - Code reusability
+> - Easy maintenance (change in one place)
+> - Readable tests
+>
+> Example: `LoginPage` class has methods like `enterUsername()`, `enterPassword()`, `clickLogin()`."
+
+---
+
+#### Q6: How do you handle dynamic elements?
+**Answer:**
+> "For dynamic elements, I use:
+> 1. **Partial attribute matching**: `contains()`, `starts-with()`
+>    ```java
+>    By.xpath("//div[contains(@id,'dynamic_')]")
+>    ```
+> 2. **CSS partial match**: `[id*='partial']`
+> 3. **Explicit waits**: Wait for element to be present
+> 4. **Relative XPath**: Find stable parent, then navigate to child
+>
+> In one project, IDs were dynamically generated, so I used data-testid attributes."
+
+---
+
+#### Q7: How do you handle alerts/popups?
+**Answer:**
+> ```java
+> // Switch to alert
+> Alert alert = driver.switchTo().alert();
+>
+> // Get alert text
+> String text = alert.getText();
+>
+> // Accept (OK)
+> alert.accept();
+>
+> // Dismiss (Cancel)
+> alert.dismiss();
+>
+> // Enter text in prompt
+> alert.sendKeys("text");
+> ```
+
+---
+
+#### Q8: How do you handle frames/iframes?
+**Answer:**
+> ```java
+> // Switch by index
+> driver.switchTo().frame(0);
+>
+> // Switch by name or ID
+> driver.switchTo().frame("frameName");
+>
+> // Switch by WebElement
+> driver.switchTo().frame(driver.findElement(By.id("frameId")));
+>
+> // Switch back to main content
+> driver.switchTo().defaultContent();
+> ```
+
+---
+
+#### Q9: How do you handle multiple windows/tabs?
+**Answer:**
+> ```java
+> // Get current window handle
+> String mainWindow = driver.getWindowHandle();
+>
+> // Get all window handles
+> Set<String> allWindows = driver.getWindowHandles();
+>
+> // Switch to new window
+> for (String window : allWindows) {
+>     if (!window.equals(mainWindow)) {
+>         driver.switchTo().window(window);
+>     }
+> }
+>
+> // Switch back
+> driver.switchTo().window(mainWindow);
+> ```
+
+---
+
+#### Q10: What is the difference between `close()` and `quit()`?
+**Answer:**
+> "`close()` closes only the **current browser window/tab**.
+>
+> `quit()` closes **all browser windows** and terminates the WebDriver session.
+>
+> I always use `quit()` in `@AfterMethod` to ensure proper cleanup."
+
+---
+
+### 🔷 TestNG Interview Questions
+
+#### Q1: What is TestNG? Why use it over JUnit?
+**Answer:**
+> "TestNG is a testing framework. Advantages over JUnit:
+> - **Annotations** for test lifecycle (@BeforeSuite, @BeforeTest, @BeforeClass, @BeforeMethod)
+> - **Parallel execution** out of the box
+> - **Grouping** tests (smoke, regression)
+> - **Data-driven testing** with @DataProvider
+> - **Dependency** management between tests
+> - **Better reporting**"
+
+---
+
+#### Q2: Explain TestNG annotation execution order.
+**Answer:**
+> ```
+> @BeforeSuite
+>   @BeforeTest
+>     @BeforeClass
+>       @BeforeMethod
+>         @Test
+>       @AfterMethod
+>     @AfterClass
+>   @AfterTest
+> @AfterSuite
+> ```
+> I use @BeforeMethod for browser setup and @AfterMethod for teardown."
+
+---
+
+#### Q3: What is @DataProvider?
+**Answer:**
+> "@DataProvider enables **data-driven testing** by providing multiple sets of test data.
+> ```java
+> @DataProvider(name = "loginData")
+> public Object[][] getLoginData() {
+>     return new Object[][] {
+>         {"user1@test.com", "pass1"},
+>         {"user2@test.com", "pass2"},
+>         {"invalid@test.com", "wrongpass"}
+>     };
+> }
+>
+> @Test(dataProvider = "loginData")
+> public void testLogin(String email, String password) {
+>     loginPage.login(email, password);
+> }
+> ```
+> The test runs 3 times with different data."
+
+---
+
+#### Q4: How do you run tests in parallel?
+**Answer:**
+> "In testng.xml:
+> ```xml
+> <suite name="Suite" parallel="tests" thread-count="3">
+>     <test name="ChromeTest">
+>         <parameter name="browser" value="chrome"/>
+>         <classes>
+>             <class name="com.test.LoginTest"/>
+>         </classes>
+>     </test>
+> </suite>
+> ```
+> parallel options: `tests`, `classes`, `methods`"
+
+---
+
+### 🔷 SQL Interview Questions
+
+#### Q1: What is the difference between WHERE and HAVING?
+**Answer:**
+> "**WHERE** filters rows before grouping.
+> **HAVING** filters groups after GROUP BY.
+> ```sql
+> SELECT city, COUNT(*) as bookings
+> FROM bookings
+> WHERE status = 'CONFIRMED'
+> GROUP BY city
+> HAVING COUNT(*) > 10;
+> ```
+
+---
+
+#### Q2: What are JOINs? Types?
+**Answer:**
+> "JOIN combines rows from 2+ tables.
+> - **INNER JOIN**: Only matching rows from both tables
+> - **LEFT JOIN**: All from left + matching from right
+> - **RIGHT JOIN**: All from right + matching from left
+> - **FULL JOIN**: All from both tables
+> ```sql
+> SELECT u.name, b.booking_reference
+> FROM users u
+> LEFT JOIN bookings b ON u.id = b.user_id;
+> ```
+
+---
+
+#### Q3: What is the difference between DELETE, TRUNCATE, DROP?
+**Answer:**
+> "- **DELETE**: Removes specific rows, can use WHERE, logged, can rollback
+> - **TRUNCATE**: Removes all rows, faster, minimal logging, cannot rollback
+> - **DROP**: Removes entire table structure and data"
+
+---
+
+### 🔷 Jira Interview Questions
+
+#### Q1: What is Agile/Scrum?
+**Answer:**
+> "Agile is an iterative development methodology. Scrum is a framework:
+> - Work in **Sprints** (2-4 weeks)
+> - **Daily standups** (15 min)
+> - **Sprint planning** at start
+> - **Sprint review/retrospective** at end
+> - Roles: Product Owner, Scrum Master, Dev Team"
+
+---
+
+#### Q2: What is a User Story?
+**Answer:**
+> "A user story describes a feature from user perspective:
+> **'As a [user type], I want [feature], so that [benefit]'**
+>
+> Example: 'As a customer, I want to filter flights by price, so that I can find affordable options.'
+>
+> Stories have **acceptance criteria** and **story points** for estimation."
+
+---
+
+#### Q3: How do you write a good bug report?
+**Answer:**
+> "A good bug report includes:
+> - **Clear title**: [BUG] Short description
+> - **Environment**: Browser, OS, URL
+> - **Steps to reproduce**: Numbered steps
+> - **Expected result**: What should happen
+> - **Actual result**: What actually happened
+> - **Severity/Priority**: Critical/High/Medium/Low
+> - **Screenshots/videos**: Visual proof"
+
+---
+
+### 🔷 DevOps Interview Questions
+
+#### Q1: What is CI/CD?
+**Answer:**
+> "**CI (Continuous Integration)**: Developers merge code frequently, automated builds and tests run on each merge.
+>
+> **CD (Continuous Delivery/Deployment)**: Automatically deploy to staging/production after tests pass.
+>
+> Pipeline: Code → Build → Test → Deploy"
+
+---
+
+#### Q2: What is Docker?
+**Answer:**
+> "Docker is a **containerization platform**. Containers package applications with all dependencies, ensuring consistent environments.
+>
+> - **Image**: Blueprint/template
+> - **Container**: Running instance of image
+>
+> For Selenium, I use `selenium/standalone-chrome` image for headless testing in CI."
+
+---
+
+#### Q3: What Git commands do you use?
+**Answer:**
+> "Daily commands:
+> - `git pull`: Get latest changes
+> - `git add .`: Stage changes
+> - `git commit -m "message"`: Commit with message
+> - `git push`: Push to remote
+> - `git branch feature-x`: Create branch
+> - `git checkout feature-x`: Switch branch
+> - `git merge`: Merge branches"
+
+---
+
+### 🔷 Behavioral Questions
+
+#### Q1: Tell me about yourself.
+**Answer:**
+> "I'm a QA professional with experience in manual and automation testing. I specialize in Selenium with Java, following Page Object Model and data-driven frameworks. I've worked on [project/domain], where I reduced regression testing time by X% through automation. I'm passionate about quality and continuously learning new tools like [current learning]."
+
+---
+
+#### Q2: Describe a challenging bug you found.
+**Answer (STAR method):**
+> "**Situation**: In my e-commerce project, users reported random checkout failures.
+>
+> **Task**: I needed to identify the root cause.
+>
+> **Action**: I created detailed test cases, captured network logs, and found the issue only occurred with specific payment combinations during peak hours. I traced it to a race condition.
+>
+> **Result**: The bug was fixed, checkout success rate improved by 15%, and I added new test cases to prevent regression."
+
+---
+
+#### Q3: How do you prioritize test cases?
+**Answer:**
+> "I prioritize based on:
+> 1. **Risk**: High-impact areas first
+> 2. **Frequency of use**: Most-used features
+> 3. **Business criticality**: Revenue-generating flows
+> 4. **Recent changes**: New/modified code
+>
+> I categorize into Smoke (P0), Critical (P1), and Regression (P2) suites."
+
+---
+
+## 📝 Interview Tips
+
+1. ✅ **Be specific**: Use real examples from projects
+2. ✅ **Show code**: Explain with code snippets
+3. ✅ **Admit gaps**: "I haven't used X, but I'm eager to learn"
+4. ✅ **Ask questions**: Shows interest and engagement
+5. ✅ **Practice**: Mock interviews help!
 
 ---
 
