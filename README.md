@@ -5,7 +5,7 @@
 ---
 
 ## 📑 Table of Contents
-0. [Java Fundamentals](#0-java-fundamentals) ⭐ NEW
+0. [Java Fundamentals](#0-java-fundamentals) 
 1. [Maven Basics](#1-maven-basics)
 2. [Selenium Fundamentals](#2-selenium-fundamentals)
 3. [TestNG Framework](#3-testng-framework)
