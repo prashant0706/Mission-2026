@@ -5,6 +5,7 @@
 ---
 
 ## 📑 Table of Contents
+0. [Java Fundamentals](#0-java-fundamentals) ⭐ NEW
 1. [Maven Basics](#1-maven-basics)
 2. [Selenium Fundamentals](#2-selenium-fundamentals)
 3. [TestNG Framework](#3-testng-framework)
@@ -15,6 +16,459 @@
 8. [SQL for Testers](#8-sql-for-testers)
 9. [DevOps Concepts](#9-devops-concepts)
 10. [Best Practices](#10-best-practices)
+
+---
+
+## 0. Java Fundamentals
+
+### What is Java?
+Java is an **object-oriented programming language** that runs on the JVM (Java Virtual Machine). It's:
+- ✅ Platform independent ("Write once, run anywhere")
+- ✅ Strongly typed (variables must have declared types)
+- ✅ Object-oriented (everything is an object)
+
+### Java File Structure
+```java
+package com.traveleasy.tests;     // Package declaration (folder structure)
+
+import org.openqa.selenium.*;     // Import statements (using other classes)
+
+public class MyClass {            // Class declaration
+    
+    // Variables (data)
+    int number = 10;
+    String text = "Hello";
+    
+    // Methods (actions)
+    public void doSomething() {
+        System.out.println("Doing something!");
+    }
+}
+```
+
+### Variables and Data Types
+
+#### Primitive Types (basic values)
+```java
+// Numeric
+int age = 25;                  // Whole numbers (-2B to 2B)
+long bigNumber = 9999999999L;  // Large whole numbers
+double price = 19.99;          // Decimal numbers
+float temp = 36.5f;            // Smaller decimals
+
+// Text & Logic
+char letter = 'A';             // Single character
+boolean isActive = true;       // true or false
+
+// Example in Selenium context
+int timeout = 10;
+boolean headless = false;
+double expectedPrice = 4999.99;
+```
+
+#### Reference Types (objects)
+```java
+// String - text (most common!)
+String url = "http://localhost:8080";
+String email = "test@example.com";
+
+// Arrays - list of items
+String[] cities = {"Pune", "Mumbai", "Delhi"};
+int[] numbers = {1, 2, 3, 4, 5};
+
+// Objects
+WebDriver driver = new ChromeDriver();
+WebElement button = driver.findElement(By.id("submit"));
+```
+
+### Operators
+```java
+// Arithmetic
+int sum = 5 + 3;        // 8
+int diff = 10 - 4;      // 6
+int product = 3 * 4;    // 12
+int quotient = 10 / 3;  // 3 (integer division)
+int remainder = 10 % 3; // 1 (modulo)
+
+// Comparison (return boolean)
+5 == 5    // true (equals)
+5 != 3    // true (not equals)
+5 > 3     // true (greater than)
+5 < 3     // false (less than)
+5 >= 5    // true (greater or equal)
+5 <= 3    // false (less or equal)
+
+// Logical
+true && true   // true (AND - both must be true)
+true || false  // true (OR - at least one true)
+!true          // false (NOT - opposite)
+
+// String comparison (IMPORTANT!)
+String a = "hello";
+String b = "hello";
+a.equals(b);       // ✅ Correct way to compare strings
+a == b;            // ❌ Wrong! Compares memory references
+```
+
+### Conditionals (if/else)
+```java
+// Basic if-else
+int age = 18;
+
+if (age >= 18) {
+    System.out.println("Adult");
+} else {
+    System.out.println("Minor");
+}
+
+// Multiple conditions
+String status = "CONFIRMED";
+
+if (status.equals("CONFIRMED")) {
+    System.out.println("Booking is confirmed");
+} else if (status.equals("PENDING")) {
+    System.out.println("Booking is pending");
+} else if (status.equals("CANCELLED")) {
+    System.out.println("Booking was cancelled");
+} else {
+    System.out.println("Unknown status");
+}
+
+// Ternary operator (short if-else)
+String result = (age >= 18) ? "Adult" : "Minor";
+```
+
+### Loops
+```java
+// For loop - when you know how many times
+for (int i = 0; i < 5; i++) {
+    System.out.println("Iteration: " + i);  // 0, 1, 2, 3, 4
+}
+
+// Enhanced for loop - for arrays/lists
+String[] browsers = {"Chrome", "Firefox", "Edge"};
+for (String browser : browsers) {
+    System.out.println("Testing on: " + browser);
+}
+
+// While loop - while condition is true
+int count = 0;
+while (count < 3) {
+    System.out.println("Count: " + count);
+    count++;  // Don't forget to increment!
+}
+
+// Selenium example: Wait for element
+int attempts = 0;
+while (attempts < 10) {
+    if (driver.findElements(By.id("popup")).size() > 0) {
+        break;  // Exit loop if found
+    }
+    Thread.sleep(500);
+    attempts++;
+}
+```
+
+### Methods (Functions)
+```java
+public class Calculator {
+    
+    // Method with no return value (void)
+    public void printMessage(String message) {
+        System.out.println(message);
+    }
+    
+    // Method that returns a value
+    public int add(int a, int b) {
+        return a + b;
+    }
+    
+    // Method with multiple parameters
+    public double calculateTotal(double price, int quantity, double discount) {
+        double total = price * quantity;
+        return total - (total * discount / 100);
+    }
+    
+    // Using the methods
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
+        calc.printMessage("Hello!");
+        int sum = calc.add(5, 3);              // sum = 8
+        double total = calc.calculateTotal(100, 2, 10);  // 180.0
+    }
+}
+```
+
+### Classes and Objects
+
+#### What is a Class?
+A **class** is a blueprint/template. An **object** is an instance of that class.
+
+```java
+// Class = Blueprint for a Car
+public class Car {
+    // Properties (what it HAS)
+    String brand;
+    String color;
+    int speed;
+    
+    // Constructor (how to CREATE it)
+    public Car(String brand, String color) {
+        this.brand = brand;
+        this.color = color;
+        this.speed = 0;
+    }
+    
+    // Methods (what it DOES)
+    public void accelerate() {
+        speed += 10;
+        System.out.println(brand + " accelerating. Speed: " + speed);
+    }
+    
+    public void brake() {
+        speed -= 10;
+        System.out.println(brand + " braking. Speed: " + speed);
+    }
+}
+
+// Creating Objects (instances)
+Car myCar = new Car("Toyota", "Red");
+Car yourCar = new Car("Honda", "Blue");
+
+myCar.accelerate();    // Toyota accelerating. Speed: 10
+yourCar.accelerate();  // Honda accelerating. Speed: 10
+```
+
+### Access Modifiers
+```java
+public class Example {
+    public String publicVar;      // Accessible from anywhere
+    private String privateVar;    // Only within this class
+    protected String protectedVar; // This class + subclasses
+    String defaultVar;            // Same package only
+}
+```
+
+| Modifier | Same Class | Same Package | Subclass | Everywhere |
+|----------|------------|--------------|----------|------------|
+| public | ✅ | ✅ | ✅ | ✅ |
+| protected | ✅ | ✅ | ✅ | ❌ |
+| default | ✅ | ✅ | ❌ | ❌ |
+| private | ✅ | ❌ | ❌ | ❌ |
+
+### Constructors
+```java
+public class User {
+    private String name;
+    private String email;
+    
+    // Default constructor (no parameters)
+    public User() {
+        this.name = "Guest";
+        this.email = "guest@example.com";
+    }
+    
+    // Parameterized constructor
+    public User(String name, String email) {
+        this.name = name;      // 'this' refers to the object's variable
+        this.email = email;
+    }
+    
+    // Getters (to READ private variables)
+    public String getName() {
+        return name;
+    }
+    
+    // Setters (to WRITE private variables)
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+// Using constructors
+User guest = new User();                              // Uses default
+User john = new User("John", "john@email.com");       // Uses parameterized
+```
+
+### Inheritance (Extending Classes)
+```java
+// Parent class (base/super class)
+public class Animal {
+    protected String name;
+    
+    public void eat() {
+        System.out.println(name + " is eating");
+    }
+}
+
+// Child class (derived/sub class)
+public class Dog extends Animal {
+    
+    public Dog(String name) {
+        this.name = name;  // Inherited from Animal
+    }
+    
+    // Dog-specific method
+    public void bark() {
+        System.out.println(name + " says Woof!");
+    }
+    
+    // Override parent method
+    @Override
+    public void eat() {
+        System.out.println(name + " is eating dog food");
+    }
+}
+
+// Usage
+Dog buddy = new Dog("Buddy");
+buddy.eat();    // "Buddy is eating dog food"
+buddy.bark();   // "Buddy says Woof!"
+```
+
+### Interfaces
+```java
+// Interface = Contract (defines WHAT, not HOW)
+public interface Drivable {
+    void start();
+    void stop();
+    void accelerate(int speed);
+}
+
+// Class implementing interface
+public class Car implements Drivable {
+    
+    @Override
+    public void start() {
+        System.out.println("Car started");
+    }
+    
+    @Override
+    public void stop() {
+        System.out.println("Car stopped");
+    }
+    
+    @Override
+    public void accelerate(int speed) {
+        System.out.println("Accelerating to " + speed);
+    }
+}
+
+// WebDriver is an interface!
+// ChromeDriver, FirefoxDriver implement it
+WebDriver driver = new ChromeDriver();
+```
+
+### Exception Handling
+```java
+try {
+    // Code that might fail
+    WebElement element = driver.findElement(By.id("doesNotExist"));
+    element.click();
+    
+} catch (NoSuchElementException e) {
+    // Handle specific exception
+    System.out.println("Element not found: " + e.getMessage());
+    
+} catch (Exception e) {
+    // Handle any other exception
+    System.out.println("Something went wrong: " + e.getMessage());
+    
+} finally {
+    // Always runs (cleanup code)
+    driver.quit();
+}
+```
+
+### Common String Methods
+```java
+String text = "Hello World";
+
+text.length();              // 11 (character count)
+text.toLowerCase();         // "hello world"
+text.toUpperCase();         // "HELLO WORLD"
+text.trim();                // Remove whitespace from ends
+text.contains("World");     // true
+text.startsWith("Hello");   // true
+text.endsWith("World");     // true
+text.substring(0, 5);       // "Hello"
+text.replace("World", "Java"); // "Hello Java"
+text.split(" ");            // ["Hello", "World"]
+text.isEmpty();             // false
+text.equals("Hello World"); // true
+```
+
+### Collections (Lists)
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+// Create a list
+List<String> fruits = new ArrayList<>();
+
+// Add items
+fruits.add("Apple");
+fruits.add("Banana");
+fruits.add("Orange");
+
+// Access items
+String first = fruits.get(0);    // "Apple"
+
+// Size
+int count = fruits.size();       // 3
+
+// Check if contains
+boolean hasApple = fruits.contains("Apple");  // true
+
+// Loop through
+for (String fruit : fruits) {
+    System.out.println(fruit);
+}
+
+// Remove item
+fruits.remove("Banana");
+
+// Selenium example
+List<WebElement> links = driver.findElements(By.tagName("a"));
+for (WebElement link : links) {
+    System.out.println(link.getText());
+}
+```
+
+### Static Keyword
+```java
+public class MathUtils {
+    
+    // Static variable - shared by ALL objects
+    public static int counter = 0;
+    
+    // Static method - belongs to CLASS, not object
+    public static int add(int a, int b) {
+        return a + b;
+    }
+}
+
+// Call without creating object
+int result = MathUtils.add(5, 3);  // 8
+MathUtils.counter++;
+```
+
+### The 'this' Keyword
+```java
+public class Person {
+    private String name;
+    
+    public Person(String name) {
+        this.name = name;  // 'this.name' = object's variable
+                           // 'name' = parameter passed in
+    }
+    
+    public Person setName(String name) {
+        this.name = name;
+        return this;  // Return the object itself (method chaining)
+    }
+}
+```
 
 ---
 
