@@ -1552,6 +1552,52 @@ Q: What type of framework have you used?
 
 ---
 
+Here's the blueprint of what we'll create:
+
+```
+TravelEasyTests/
+│
+├── 📁 src/main/java/com/traveleasy/
+│   │
+│   ├── 📁 pages/                    ← PAGE OBJECT MODEL
+│   │   ├── BasePage.java            (Common page methods)
+│   │   ├── LoginPage.java           (Login page elements & actions)
+│   │   ├── HomePage.java            (Home page)
+│   │   ├── FlightsPage.java         (Flights search)
+│   │   └── BookingPage.java         (Booking flow)
+│   │
+│   ├── 📁 utils/                    ← UTILITIES (Modular)
+│   │   ├── WaitHelper.java          (Explicit waits)
+│   │   ├── ScreenshotUtil.java      (Capture screenshots)
+│   │   ├── ExcelReader.java         (Read test data)
+│   │   └── BrowserFactory.java      (Create browsers)
+│   │
+│   └── 📁 config/                   ← CONFIGURATION
+│       └── ConfigReader.java        (Read properties file)
+│
+├── 📁 src/test/java/com/traveleasy/
+│   │
+│   ├── 📁 base/
+│   │   └── BaseTest.java            ← Setup & Teardown
+│   │
+│   └── 📁 tests/                    ← ACTUAL TESTS
+│       ├── LoginTest.java
+│       ├── FlightSearchTest.java
+│       ├── BookingTest.java
+│       └── WalletTest.java
+│
+├── 📁 src/test/resources/
+│   ├── config.properties            ← Configuration file
+│   ├── testng.xml                   ← Test suite
+│   └── 📁 testdata/                 ← DATA-DRIVEN
+│       └── login_data.xlsx
+│
+└── pom.xml                          ← Dependencies
+```
+
+---
+
+
 ## 📝 Interview Tips
 
 1. ✅ **Be specific**: Use real examples from projects
