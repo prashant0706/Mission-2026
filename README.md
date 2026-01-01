@@ -1551,4 +1551,16 @@ src/
 
 ---
 
+---
+Q: What type of framework have you used?
+
+A: "I've built a Hybrid Framework combining Page Object Model with Data-Driven approach.
+
+Page Objects encapsulate locators and actions for each page
+Test data comes from Excel/properties files
+BaseTest handles setup/teardown
+Utilities handle common operations like waits and screenshots
+We use TestNG for execution and ExtentReports for reporting."
+--
+
 *Notes will be updated as we learn more!* 📖
