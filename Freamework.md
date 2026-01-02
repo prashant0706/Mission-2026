@@ -303,3 +303,120 @@ public class FirstTest {
 - Console shows: `Page Title: Google`
 - Browser closes
 - Test shows **GREEN (PASSED)**
+
+
+
+---
+
+## Phase 3: Create BaseTest Class
+
+**Why BaseTest?**
+- Contains setup/teardown code shared by ALL tests
+- Uses **inheritance** - all test classes `extend BaseTest`
+- Avoids code duplication
+
+---
+
+### Step 3.1: Create BaseTest.java
+
+1. Right-click on `com.traveleasy.base` (in `src/test/java`)
+2. New → Java Class → `BaseTest`
+3. Write this code:
+
+```java
+package com.traveleasy.base;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
+
+import java.time.Duration;
+
+public class BaseTest {
+    
+    // Protected = accessible in child classes
+    protected WebDriver driver;
+    
+    @BeforeMethod
+    @Parameters("browser")  // Can receive browser name from testng.xml
+    public void setUp(@Optional("chrome") String browser) {
+        
+        // Create browser based on parameter
+        switch (browser.toLowerCase()) {
+            case "chrome":
+                driver = new ChromeDriver();
+                break;
+            case "firefox":
+                driver = new FirefoxDriver();
+                break;
+            case "edge":
+                driver = new EdgeDriver();
+                break;
+            default:
+                driver = new ChromeDriver();
+        }
+        
+        // Maximize window
+        driver.manage().window().maximize();
+        
+        // Set implicit wait
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+    }
+    
+    @AfterMethod
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+}
+```
+
+---
+
+### 📚 Java Concepts in BaseTest
+
+| Code | Concept | Explanation |
+|------|---------|-------------|
+| `protected WebDriver driver` | **Protected modifier** | Accessible in this class AND child classes |
+| `@Parameters("browser")` | **TestNG Parameters** | Receive value from testng.xml |
+| `@Optional("chrome")` | **Default value** | Use "chrome" if no parameter given |
+| `switch (browser)` | **Switch statement** | Select action based on value |
+| `Duration.ofSeconds(10)` | **Java Time API** | Create duration of 10 seconds |
+
+---
+
+### Step 3.2: Update FirstTest to Use BaseTest
+
+Now update your [FirstTest.java](cci:7://file:///D:/java/SeleniumFramework/src/test/java/com/traveleasy/tests/FirstTest.java:0:0-0:0) to **extend BaseTest**:
+
+```java
+package com.traveleasy.tests;
+
+import com.traveleasy.base.BaseTest;
+import org.testng.annotations.Test;
+
+public class FirstTest extends BaseTest {  // ← extends BaseTest!
+    
+    // No need for driver, setUp, tearDown - inherited from BaseTest!
+    
+    @Test
+    public void testOpenGoogle() {
+        driver.get("https://www.google.com");  // driver is inherited!
+        String title = driver.getTitle();
+        System.out.println("Page Title: " + title);
+    }
+    
+    @Test
+    public void testOpenTravelEasy() {
+        driver.get("http://localhost:8080/travel");
+        String title = driver.getTitle();
+        System.out.println("TravelEasy Title: " + title);
+    }
+}
+```
