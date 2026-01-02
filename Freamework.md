@@ -420,3 +420,121 @@ public class FirstTest extends BaseTest {  // ← extends BaseTest!
     }
 }
 ```
+---
+
+## 🎯 Java Interview Questions
+
+### Q1: What is the difference between `public`, `private`, and `protected`?
+**Expected Answer:**
+> - `public`: Accessible from anywhere
+> - `private`: Only within the same class
+> - `protected`: Same class + child classes + same package
+> - I use `protected` for the WebDriver variable so child test classes can access it through inheritance.
+
+---
+
+### Q2: What is inheritance? Why did you use `extends`?
+**Expected Answer:**
+> Inheritance allows a child class to acquire properties and methods of a parent class. I used `extends BaseTest` so that all my test classes inherit the `driver` variable and `setUp()`/`tearDown()` methods. This avoids code duplication - I write browser setup once in BaseTest, and all tests reuse it.
+
+---
+
+### Q3: What is the difference between `interface` and `class`?
+**Expected Answer:**
+> An interface defines a contract (method signatures) without implementation. A class provides the actual implementation. `WebDriver` is an interface that defines methods like [get()](cci:1://file:///D:/java/shopeasy/shopeasy/src/main/java/com/prashant/shopeasy/model/Review.java:33:4-34:37), `findElement()`. `ChromeDriver` is a class that implements these methods specifically for Chrome.
+
+---
+
+### Q4: What is a switch statement? When do you use it?
+**Expected Answer:**
+> Switch evaluates one expression against multiple possible values. I use it in BaseTest to create different browser drivers based on the browser parameter. It's cleaner than multiple if-else statements when comparing one variable against many values.
+
+---
+
+### Q5: What is method chaining?
+**Expected Answer:**
+> Method chaining is calling multiple methods in a single statement, where each method returns an object. Example: `driver.manage().window().maximize()`. Each method returns an object that has the next method, creating a fluent API.
+
+---
+
+### Q6: What is a null check? Why is it important?
+**Expected Answer:**
+> A null check verifies if an object reference is not null before using it. In `tearDown()`, I check `if (driver != null)` before calling `quit()` because if `setUp()` failed, driver would be null, and calling `null.quit()` would throw `NullPointerException`.
+
+---
+
+## 🎯 Selenium Interview Questions
+
+### Q7: What is WebDriver? Is it a class or interface?
+**Expected Answer:**
+> WebDriver is an **interface** in Selenium that defines methods to control browsers. It's implemented by browser-specific driver classes like ChromeDriver, FirefoxDriver, and EdgeDriver. This follows the **programming to interface** principle, allowing us to switch browsers easily.
+
+---
+
+### Q8: What is the difference between `driver.close()` and `driver.quit()`?
+**Expected Answer:**
+> - [close()](cci:1://file:///D:/java/shopeasy/shopeasy/src/main/resources/templates/travel/help.html:542:8-544:9): Closes only the current browser window/tab
+> - `quit()`: Closes ALL browser windows and terminates the WebDriver session completely
+> 
+> I always use `quit()` in `tearDown()` to ensure complete cleanup.
+
+---
+
+### Q9: What is implicit wait?
+**Expected Answer:**
+> Implicit wait tells WebDriver to wait up to a specified time when trying to find an element before throwing an exception. It's set once with `driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10))` and applies to ALL `findElement()` calls. If the element is found earlier, it continues without waiting the full time.
+
+---
+
+### Q10: How do you run tests on different browsers?
+**Expected Answer:**
+> I create a parameterized setup method using TestNG's `@Parameters` annotation. The browser name comes from testng.xml file. In the switch statement, I create the appropriate driver (ChromeDriver, FirefoxDriver, EdgeDriver) based on the parameter value.
+
+---
+
+## 🎯 TestNG Interview Questions
+
+### Q11: Explain @BeforeMethod and @AfterMethod.
+**Expected Answer:**
+> - `@BeforeMethod`: Runs before **each** @Test method (for setup like opening browser)
+> - `@AfterMethod`: Runs after **each** @Test method (for cleanup like closing browser)
+> 
+> If I have 5 tests, @BeforeMethod runs 5 times. This ensures each test starts with a fresh browser.
+
+---
+
+### Q12: What is @Optional in TestNG?
+**Expected Answer:**
+> `@Optional("value")` provides a default value for a parameter when it's not supplied in testng.xml. In my BaseTest, `@Optional("chrome")` means if no browser parameter is specified, Chrome is used by default.
+
+---
+
+### Q13: What is the execution order of TestNG annotations?
+**Expected Answer:**
+> ```
+> @BeforeSuite → @BeforeTest → @BeforeClass → @BeforeMethod → @Test → @AfterMethod → @AfterClass → @AfterTest → @AfterSuite
+> ```
+> I use @BeforeMethod/@AfterMethod for browser setup/cleanup at the test method level.
+
+---
+
+## 🎯 Framework Design Questions
+
+### Q14: Why do you use a BaseTest class?
+**Expected Answer:**
+> BaseTest serves as a parent class containing common functionality:
+> 1. **Code reusability**: Setup/teardown written once
+> 2. **Maintainability**: Changes in one place affect all tests
+> 3. **Consistency**: All tests use the same browser configuration
+> 4. **Clean tests**: Test classes focus only on test logic
+
+---
+
+### Q15: What design patterns are you using?
+**Expected Answer:**
+> - **Template Method Pattern**: BaseTest defines the skeleton (setUp/tearDown), child classes provide specific tests
+> - **Page Object Model**: (Coming next) Each page has a class encapsulating elements and actions
+> - **Factory Pattern**: The switch statement acts as a simple factory, creating different driver types based on input
+
+---
+
