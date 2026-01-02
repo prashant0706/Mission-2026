@@ -188,3 +188,118 @@ SeleniumFramework/
 > **A:** "With Selenium 4.6+, Selenium Manager is built-in, so we don't need the external WebDriverManager dependency anymore. Selenium automatically downloads and manages browser drivers. However, for older Selenium versions or more advanced driver configuration, WebDriverManager is still useful."
 
 ---
+
+---
+
+## Phase 2: Create Configuration & First Test
+
+---
+
+### Step 2.1: Create config.properties
+
+1. Right-click on `src/test/resources` 
+2. Select **New → File**
+3. Name it: [config.properties](cci:7://file:///D:/java/TravelEasyTests/src/main/resources/config.properties:0:0-0:0)
+4. Add this content:
+
+```properties
+# Application URLs
+base.url=http://localhost:8080
+travel.url=http://localhost:8080/travel
+
+# Test Credentials
+test.email=test@example.com
+test.password=password123
+
+# Browser Settings
+browser=chrome
+
+# Timeouts (seconds)
+implicit.wait=10
+explicit.wait=15
+```
+
+---
+
+### Step 2.2: Create Your First Test
+
+1. Right-click on `src/test/java`
+2. Select **New → Package** → `com.traveleasy.tests`
+3. Right-click on the new `tests` package
+4. Select **New → Java Class** → `FirstTest`
+5. Write this code:
+
+```java
+package com.traveleasy.tests;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+public class FirstTest {
+    
+    // Instance variable - belongs to the object
+    WebDriver driver;
+    
+    // Runs BEFORE each test method
+    @BeforeMethod
+    public void setUp() {
+        // Create Chrome browser instance
+        driver = new ChromeDriver();
+        
+        // Maximize window
+        driver.manage().window().maximize();
+    }
+    
+    // The actual test
+    @Test
+    public void testOpenGoogle() {
+        // Navigate to Google (to verify Selenium works)
+        driver.get("https://www.google.com");
+        
+        // Print page title
+        String title = driver.getTitle();
+        System.out.println("Page Title: " + title);
+    }
+    
+    // Runs AFTER each test method
+    @AfterMethod
+    public void tearDown() {
+        // Close browser
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+}
+```
+
+---
+
+### 📚 Java Concepts in This Code
+
+| Code | Concept | Explanation |
+|------|---------|-------------|
+| `WebDriver driver;` | **Instance Variable** | Declared at class level, accessible in all methods |
+| `@BeforeMethod` | **Annotation** | TestNG marker - runs before each @Test |
+| `driver = new ChromeDriver();` | **Object Creation** | Creates new Chrome browser object |
+| `driver.get(url)` | **Method Call** | Calling a method on the driver object |
+| `if (driver != null)` | **Null Check** | Prevents NullPointerException |
+
+---
+
+### Step 2.3: Run the Test
+
+1. Right-click on [FirstTest.java](cci:7://file:///D:/java/TravelEasyTests/src/main/java/com/traveleasy/tests/FirstTest.java:0:0-0:0)
+2. Select **Run 'FirstTest'**
+
+---
+
+### ✅ Expected Result
+
+- Chrome browser opens
+- Navigates to Google
+- Console shows: `Page Title: Google`
+- Browser closes
+- Test shows **GREEN (PASSED)**
