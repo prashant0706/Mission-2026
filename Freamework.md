@@ -537,4 +537,227 @@ public class FirstTest extends BaseTest {  // ← extends BaseTest!
 > - **Factory Pattern**: The switch statement acts as a simple factory, creating different driver types based on input
 
 ---
+---
 
+## Phase 4: ConfigReader & Page Object Model
+
+Now we'll create the **ConfigReader** (to read properties file) and start with **Page Objects**.
+
+---
+
+### Step 4.1: Create ConfigReader.java
+
+1. Right-click on `com.traveleasy.config` (in `src/main/java`)
+2. New → Java Class → `ConfigReader`
+3. Write this code:
+
+```java
+package com.traveleasy.config;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+public class ConfigReader {
+    
+    // Properties object to hold key-value pairs
+    private static Properties properties;
+    
+    // Static block - runs once when class is loaded
+    static {
+        try {
+            // Load the properties file
+            FileInputStream file = new FileInputStream("src/test/resources/config.properties");
+            properties = new Properties();
+            properties.load(file);
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Could not load config.properties file!");
+        }
+    }
+    
+    // Get any property value
+    public static String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+    
+    // Convenience methods for common properties
+    public static String getBaseUrl() {
+        return properties.getProperty("base.url");
+    }
+    
+    public static String getTravelUrl() {
+        return properties.getProperty("travel.url");
+    }
+    
+    public static String getTestEmail() {
+        return properties.getProperty("test.email");
+    }
+    
+    public static String getTestPassword() {
+        return properties.getProperty("test.password");
+    }
+    
+    public static String getBrowser() {
+        return properties.getProperty("browser");
+    }
+    
+    public static int getImplicitWait() {
+        return Integer.parseInt(properties.getProperty("implicit.wait"));
+    }
+}
+```
+
+---
+
+### 📚 Java Concepts in ConfigReader
+
+| Code | Concept | Explanation |
+|------|---------|-------------|
+| `private static Properties` | **Static variable** | Shared by all instances, loaded once |
+| `static { }` | **Static block** | Runs once when class loads |
+| `FileInputStream` | **File I/O** | Reads file from disk |
+| `Properties` | **Java class** | Handles key=value files |
+| `getProperty(key)` | **Method call** | Gets value for a key |
+| `Integer.parseInt()` | **Parsing** | Converts String to int |
+
+---
+
+### Step 4.2: Update BaseTest to Use ConfigReader
+
+Update your [BaseTest.java](cci:7://file:///D:/java/SeleniumFramework/src/test/java/com/traveleasy/base/BaseTest.java:0:0-0:0) to use the config:
+
+```java
+package com.traveleasy.base;
+
+import com.traveleasy.config.ConfigReader;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+
+import java.time.Duration;
+
+public class BaseTest {
+    
+    protected WebDriver driver;
+    
+    @BeforeMethod
+    public void setUp() {
+        // Get browser from config file
+        String browser = ConfigReader.getBrowser();
+        
+        switch (browser.toLowerCase()) {
+            case "chrome":
+                driver = new ChromeDriver();
+                break;
+            case "firefox":
+                driver = new FirefoxDriver();
+                break;
+            case "edge":
+                driver = new EdgeDriver();
+                break;
+            default:
+                driver = new ChromeDriver();
+        }
+        
+        driver.manage().window().maximize();
+        
+        // Get timeout from config file
+        int timeout = ConfigReader.getImplicitWait();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(timeout));
+    }
+    
+    @AfterMethod
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+}
+```
+
+---
+
+### Step 4.3: Create BasePage.java
+
+1. Right-click on `com.traveleasy.pages` (in `src/main/java`)
+2. New → Java Class → `BasePage`
+3. Write this code:
+
+```java
+package com.traveleasy.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+
+public class BasePage {
+    
+    protected WebDriver driver;
+    protected WebDriverWait wait;
+    
+    // Constructor
+    public BasePage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+    }
+    
+    // Reusable method: Click element
+    protected void click(By locator) {
+        wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+    }
+    
+    // Reusable method: Type text
+    protected void type(By locator, String text) {
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        element.clear();
+        element.sendKeys(text);
+    }
+    
+    // Reusable method: Get text
+    protected String getText(By locator) {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
+    }
+    
+    // Reusable method: Check if element is displayed
+    protected boolean isDisplayed(By locator) {
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    // Navigate to URL
+    protected void navigateTo(String url) {
+        driver.get(url);
+    }
+    
+    // Get page title
+    protected String getPageTitle() {
+        return driver.getTitle();
+    }
+}
+```
+
+---
+
+### 📚 Java Concepts in BasePage
+
+| Code | Concept | Explanation |
+|------|---------|-------------|
+| `public BasePage(WebDriver driver)` | **Constructor** | Initializes object with driver |
+| `this.driver = driver` | **this keyword** | Refers to instance variable |
+| `protected void click()` | **Protected method** | Accessible in child page classes |
+| `WebDriverWait` | **Explicit wait** | Wait for specific condition |
+| `ExpectedConditions` | **Wait conditions** | What to wait for |
+
+---
