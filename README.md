@@ -1596,7 +1596,271 @@ TravelEasyTests/
 ```
 
 ---
+---
 
+## 📊 Types of Automation Frameworks
+
+### 1️⃣ Linear/Record & Playback Framework
+
+**What:** Simply record actions and play them back.
+
+```java
+// Just sequential steps, no structure
+driver.get("http://example.com");
+driver.findElement(By.id("user")).sendKeys("admin");
+driver.findElement(By.id("pass")).sendKeys("123");
+driver.findElement(By.id("login")).click();
+// Repeat everything for next test...
+```
+
+| Pros | Cons |
+|------|------|
+| Quick to create | No reusability |
+| No coding skills needed | Hard to maintain |
+| Good for demos | Breaks easily |
+
+**When to use:** Quick POCs, small projects, demos.
+
+---
+
+### 2️⃣ Modular Framework
+
+**What:** Break functionality into independent modules (methods/classes).
+
+```java
+// Reusable modules
+public void login(String user, String pass) {
+    driver.findElement(By.id("user")).sendKeys(user);
+    driver.findElement(By.id("pass")).sendKeys(pass);
+    driver.findElement(By.id("login")).click();
+}
+
+public void searchFlight(String from, String to) {
+    // Search logic
+}
+
+// Test uses modules
+@Test
+public void testBooking() {
+    login("user", "pass");
+    searchFlight("Pune", "Delhi");
+}
+```
+
+| Pros | Cons |
+|------|------|
+| Reusable modules | Data still hardcoded |
+| Easier maintenance | Limited flexibility |
+
+---
+
+### 3️⃣ Data-Driven Framework
+
+**What:** Separate test data from test logic. Data comes from external files (Excel, CSV, JSON).
+
+```java
+// Data in Excel/CSV
+// | email              | password  |
+// | user1@test.com     | pass1     |
+// | user2@test.com     | pass2     |
+
+@Test(dataProvider = "loginData")
+public void testLogin(String email, String password) {
+    loginPage.login(email, password);  // Same logic, different data
+}
+
+@DataProvider
+public Object[][] loginData() {
+    return ExcelReader.read("testdata.xlsx", "LoginData");
+}
+```
+
+| Pros | Cons |
+|------|------|
+| Run same test with multiple data | More setup required |
+| Easy to add new test cases | Data management needed |
+| Non-technical can add data | |
+
+**When to use:** When testing same feature with different inputs (forms, logins, searches).
+
+---
+
+### 4️⃣ Keyword-Driven Framework
+
+**What:** Define actions as "keywords". Non-programmers can write tests.
+
+```
+| Action     | Locator        | Value          |
+| open       | URL            | http://app.com |
+| type       | id=email       | test@test.com  |
+| type       | id=password    | password123    |
+| click      | id=login-btn   |                |
+| verify     | id=welcome     | Welcome User   |
+```
+
+```java
+// Framework interprets keywords
+switch(action) {
+    case "open": driver.get(value); break;
+    case "type": driver.findElement(locator).sendKeys(value); break;
+    case "click": driver.findElement(locator).click(); break;
+}
+```
+
+| Pros | Cons |
+|------|------|
+| Anyone can write tests | Complex to build |
+| Excel-based test cases | Limited flexibility |
+| Reusable keywords | Slower execution |
+
+**When to use:** Large teams with manual testers contributing to automation.
+
+---
+
+### 5️⃣ Page Object Model (POM) Framework ⭐
+
+**What:** Each page = One Java class. Locators and actions are encapsulated.
+
+```java
+// LoginPage.java
+public class LoginPage {
+    WebDriver driver;
+    
+    // Locators (private)
+    private By emailInput = By.id("email");
+    private By passwordInput = By.id("password");
+    private By loginBtn = By.id("login-btn");
+    
+    // Constructor
+    public LoginPage(WebDriver driver) {
+        this.driver = driver;
+    }
+    
+    // Actions (public)
+    public HomePage login(String email, String password) {
+        driver.findElement(emailInput).sendKeys(email);
+        driver.findElement(passwordInput).sendKeys(password);
+        driver.findElement(loginBtn).click();
+        return new HomePage(driver);
+    }
+}
+
+// Test uses Page Object
+@Test
+public void testLogin() {
+    LoginPage loginPage = new LoginPage(driver);
+    HomePage homePage = loginPage.login("test@test.com", "pass123");
+    Assert.assertTrue(homePage.isWelcomeDisplayed());
+}
+```
+
+| Pros | Cons |
+|------|------|
+| Clean separation | More initial setup |
+| Easy maintenance | Need OOP knowledge |
+| Readable tests | |
+| Industry standard | |
+
+**When to use:** Almost always! This is the **most popular** approach.
+
+---
+
+### 6️⃣ Hybrid Framework ⭐⭐ (What We're Building!)
+
+**What:** Combines the best of multiple frameworks.
+
+```
+Hybrid Framework = POM + Data-Driven + Modular + Utilities
+```
+
+```
+TravelEasyTests/
+├── src/main/java/
+│   ├── pages/           ← Page Object Model
+│   │   ├── BasePage.java
+│   │   ├── LoginPage.java
+│   │   └── FlightsPage.java
+│   ├── utils/           ← Modular utilities
+│   │   ├── WaitHelper.java
+│   │   ├── ScreenshotUtil.java
+│   │   └── ExcelReader.java
+│   └── config/          ← Configuration
+│       └── ConfigReader.java
+│
+├── src/test/java/
+│   ├── base/BaseTest.java
+│   └── tests/
+│       ├── LoginTest.java
+│       └── BookingTest.java
+│
+└── src/test/resources/
+    ├── testdata/        ← Data-Driven
+    │   ├── login_data.xlsx
+    │   └── booking_data.csv
+    └── config.properties
+```
+
+| Component | Framework Type |
+|-----------|---------------|
+| Page classes | Page Object Model |
+| Test data files | Data-Driven |
+| Utility classes | Modular |
+| Combined | **Hybrid** |
+
+---
+
+### 7️⃣ BDD Framework (Behavior-Driven Development)
+
+**What:** Write tests in plain English using **Cucumber/Gherkin**.
+
+```gherkin
+# login.feature
+Feature: User Login
+
+  Scenario: Valid login
+    Given I am on the login page
+    When I enter email "test@example.com"
+    And I enter password "password123"
+    And I click the login button
+    Then I should see the home page
+```
+
+```java
+// Step Definitions
+@Given("I am on the login page")
+public void navigateToLogin() {
+    driver.get("http://app.com/login");
+}
+
+@When("I enter email {string}")
+public void enterEmail(String email) {
+    loginPage.enterEmail(email);
+}
+```
+
+| Pros | Cons |
+|------|------|
+| Business readable | Extra layer (Gherkin) |
+| Great documentation | More files to maintain |
+| Stakeholder collaboration | Learning curve |
+
+**When to use:** When business stakeholders need to understand/contribute to tests.
+
+---
+
+## 🏆 Framework Comparison
+
+| Framework | Complexity | Reusability | Maintainability | Best For |
+|-----------|------------|-------------|-----------------|----------|
+| Linear | ⭐ | ❌ | ❌ | Quick demos |
+| Modular | ⭐⭐ | ✅ | ✅ | Small projects |
+| Data-Driven | ⭐⭐⭐ | ✅ | ✅ | Data-heavy testing |
+| Keyword | ⭐⭐⭐⭐ | ✅✅ | ✅ | Non-technical teams |
+| POM | ⭐⭐⭐ | ✅✅ | ✅✅ | Most projects |
+| **Hybrid** | ⭐⭐⭐⭐ | ✅✅✅ | ✅✅✅ | **Enterprise** |
+| BDD | ⭐⭐⭐⭐ | ✅✅ | ✅✅ | Agile/collaboration |
+
+---
 
 ## 📝 Interview Tips
 
