@@ -761,3 +761,231 @@ public class BasePage {
 | `ExpectedConditions` | **Wait conditions** | What to wait for |
 
 ---
+
+
+## 🎯 ConfigReader - Interview Questions
+
+### Q1: Why do you use a properties file in your framework?
+**Expected Answer:**
+> Properties files separate configuration from code. Benefits:
+> - **No recompilation**: Change URL/credentials without rebuilding
+> - **Environment flexibility**: Different configs for dev, staging, production
+> - **Security**: Credentials not hardcoded in source code
+> - **Maintainability**: Easy to update by anyone
+
+---
+
+### Q2: What is a static block in Java? Why did you use it in ConfigReader?
+**Expected Answer:**
+> A static block runs **once** when the class is first loaded into memory, before any method calls. I use it in ConfigReader to:
+> - Load the properties file only once
+> - Make the Properties object available immediately
+> - Avoid repeated file reading
+> ```java
+> static {
+>     // This runs once when ConfigReader is first used
+>     properties = new Properties();
+>     properties.load(new FileInputStream("config.properties"));
+> }
+> ```
+
+---
+
+### Q3: What is the difference between static and instance variables?
+**Expected Answer:**
+> | Static Variable | Instance Variable |
+> |----------------|-------------------|
+> | Belongs to the **class** | Belongs to **object** |
+> | Shared by all objects | Each object has its own copy |
+> | One copy in memory | Multiple copies possible |
+> | Access: `ClassName.variable` | Access: `object.variable` |
+> 
+> I use `static Properties` in ConfigReader because config should be loaded once and shared across all tests.
+
+---
+
+### Q4: How do you read a properties file in Java?
+**Expected Answer:**
+> ```java
+> Properties properties = new Properties();
+> FileInputStream file = new FileInputStream("path/to/file.properties");
+> properties.load(file);
+> String value = properties.getProperty("key");
+> file.close();
+> ```
+> The Properties class handles key=value format files automatically.
+
+---
+
+### Q5: What exception handling did you use in ConfigReader?
+**Expected Answer:**
+> I used try-catch to handle `IOException` which can occur if:
+> - File doesn't exist
+> - File path is wrong
+> - File is not readable
+> 
+> I throw a `RuntimeException` with a clear message so tests fail fast with meaningful error.
+
+---
+
+## 🎯 BasePage - Interview Questions
+
+### Q6: What is Page Object Model (POM)?
+**Expected Answer:**
+> POM is a design pattern where each web page has a corresponding Java class containing:
+> - **Locators** (private)
+> - **Page actions as methods** (public)
+> 
+> Benefits:
+> - **Reusability**: Page methods used by multiple tests
+> - **Maintainability**: UI change = update one class
+> - **Readability**: Tests read like user actions
+> - **Separation of concerns**: Tests focus on logic, pages handle elements
+
+---
+
+### Q7: Why do you have a BasePage class?
+**Expected Answer:**
+> BasePage is a parent class containing common functionality used by all page classes:
+> - Driver and wait initialization
+> - Common methods: [click()](cci:1://file:///D:/java/shopeasy/shopeasy/src/main/resources/templates/travel/seat-selection.html:377:24-377:64), `type()`, `getText()`
+> - Page navigation methods
+> 
+> All specific pages (LoginPage, HomePage) extend BasePage and inherit these methods.
+
+---
+
+### Q8: What is the difference between implicit wait and explicit wait?
+**Expected Answer:**
+> | Implicit Wait | Explicit Wait |
+> |---------------|---------------|
+> | Set once, applies to ALL findElement() | Set for specific element/condition |
+> | `driver.manage().timeouts().implicitlyWait()` | `WebDriverWait` + `ExpectedConditions` |
+> | Waits for element presence | Waits for specific condition |
+> | Less flexible | More precise control |
+> 
+> I use **explicit waits** in BasePage methods because different elements need different conditions (clickable, visible, etc.).
+
+---
+
+### Q9: What is ExpectedConditions? Give examples.
+**Expected Answer:**
+> `ExpectedConditions` provides ready-made conditions for WebDriverWait:
+> ```java
+> ExpectedConditions.visibilityOfElementLocated(locator)  // Element is visible
+> ExpectedConditions.elementToBeClickable(locator)        // Element can be clicked
+> ExpectedConditions.presenceOfElementLocated(locator)    // Element exists in DOM
+> ExpectedConditions.invisibilityOfElementLocated(locator) // Element disappears
+> ExpectedConditions.textToBePresentInElement(element, "text") // Text appears
+> ExpectedConditions.alertIsPresent()                      // Alert popup
+> ```
+
+---
+
+### Q10: What is a constructor? Why does BasePage have one?
+**Expected Answer:**
+> A constructor is a special method called when creating an object. It initializes the object's state.
+> ```java
+> public BasePage(WebDriver driver) {
+>     this.driver = driver;
+>     this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+> }
+> ```
+> BasePage constructor receives the WebDriver and initializes the wait object. Child pages pass the driver when calling `super(driver)`.
+
+---
+
+### Q11: Explain the `this` keyword.
+**Expected Answer:**
+> `this` refers to the current object instance. Used to:
+> - Distinguish instance variable from parameter with same name
+> - Call another constructor in same class
+> - Pass current object as parameter
+> 
+> ```java
+> public BasePage(WebDriver driver) {
+>     this.driver = driver;  // this.driver = instance variable
+>                            // driver = parameter
+> }
+> ```
+
+---
+
+### Q12: How does your click() method work?
+**Expected Answer:**
+> ```java
+> protected void click(By locator) {
+>     wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+> }
+> ```
+> 1. Wait until element is clickable (visible + enabled)
+> 2. Return the element
+> 3. Click on it
+> 
+> This prevents `ElementNotClickable` and `StaleElement` exceptions.
+
+---
+
+### Q13: What is method chaining in your BasePage?
+**Expected Answer:**
+> Method chaining calls multiple methods in one statement:
+> ```java
+> wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+> ```
+> - `wait.until()` returns WebElement
+> - `.click()` is called on that WebElement
+> 
+> This is more concise than storing in a variable first.
+
+---
+
+## 🎯 Design Pattern Questions
+
+### Q14: What design patterns are you using in your framework?
+**Expected Answer:**
+> 1. **Page Object Model**: Encapsulates page elements and actions
+> 2. **Template Method**: BaseTest/BasePage define skeleton, child classes add specifics
+> 3. **Singleton (partial)**: ConfigReader loads properties once (static)
+> 4. **Factory**: BaseTest creates different drivers based on config
+
+---
+
+### Q15: How do child page classes use BasePage?
+**Expected Answer:**
+> ```java
+> public class LoginPage extends BasePage {
+>     
+>     public LoginPage(WebDriver driver) {
+>         super(driver);  // Call BasePage constructor
+>     }
+>     
+>     private By emailField = By.id("email");
+>     
+>     public void enterEmail(String email) {
+>         type(emailField, email);  // Use inherited method
+>     }
+> }
+> ```
+> The child:
+> - Extends BasePage
+> - Calls `super(driver)` to initialize parent
+> - Uses inherited methods like `type()`, [click()](cci:1://file:///D:/java/shopeasy/shopeasy/src/main/resources/templates/travel/seat-selection.html:377:24-377:64)
+
+---
+
+## 📊 Quick Reference Card
+
+| Concept | Key Point |
+|---------|-----------|
+| Static block | Runs once when class loads |
+| Static variable | Shared across all instances |
+| Properties | Reads key=value files |
+| Constructor | Initializes object state |
+| `this` keyword | Refers to current object |
+| Implicit wait | Global, for all elements |
+| Explicit wait | Specific element + condition |
+| ExpectedConditions | Predefined wait conditions |
+| BasePage | Parent with common methods |
+| Page Object Model | Page = Class pattern |
+
+---
