@@ -742,7 +742,7 @@ public class BasePage {
     }
     
     // Get page title
-    protected String getPageTitle() {
+    public String getPageTitle() {
         return driver.getTitle();
     }
 }
