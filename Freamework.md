@@ -989,3 +989,242 @@ public class BasePage {
 | Page Object Model | Page = Class pattern |
 
 ---
+
+
+
+## 🚀 Phase 5: Create Your First Page Object (LoginPage)
+
+Now we'll create a real page object for TravelEasy's login page!
+
+---
+
+### Step 5.1: Create LoginPage.java
+
+1. Right-click on `com.traveleasy.pages` (in `src/main/java`)
+2. New → Java Class → `LoginPage`
+3. Write this code:
+
+```java
+package com.traveleasy.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+public class LoginPage extends BasePage {
+    
+    // Locators - using data-testid attributes from TravelEasy
+    private By emailInput = By.cssSelector("[data-testid='email-input']");
+    private By passwordInput = By.cssSelector("[data-testid='password-input']");
+    private By loginButton = By.cssSelector("[data-testid='login-button']");
+    private By errorMessage = By.cssSelector("[data-testid='error-message']");
+    private By registerLink = By.linkText("Register here");
+    
+    // Constructor
+    public LoginPage(WebDriver driver) {
+        super(driver);  // Call BasePage constructor
+    }
+    
+    // Navigate to login page
+    public LoginPage open(String url) {
+        navigateTo(url + "/login");
+        return this;
+    }
+    
+    // Enter email
+    public LoginPage enterEmail(String email) {
+        type(emailInput, email);
+        return this;
+    }
+    
+    // Enter password
+    public LoginPage enterPassword(String password) {
+        type(passwordInput, password);
+        return this;
+    }
+    
+    // Click login button
+    public HomePage clickLogin() {
+        click(loginButton);
+        return new HomePage(driver);  // Return next page
+    }
+    
+    // Combined login method
+    public HomePage login(String email, String password) {
+        enterEmail(email);
+        enterPassword(password);
+        return clickLogin();
+    }
+    
+    // Get error message
+    public String getErrorMessage() {
+        return getText(errorMessage);
+    }
+    
+    // Check if error is displayed
+    public boolean isErrorDisplayed() {
+        return isDisplayed(errorMessage);
+    }
+    
+    // Click register link
+    public void clickRegister() {
+        click(registerLink);
+    }
+}
+```
+
+---
+
+### 📚 Key Concepts in LoginPage
+
+| Code | Concept | Explanation |
+|------|---------|-------------|
+| `extends BasePage` | **Inheritance** | Gets driver, wait, common methods |
+| `super(driver)` | **Super constructor** | Calls parent's constructor |
+| `return this` | **Method chaining** | Allows `page.enterEmail().enterPassword()` |
+| `return new HomePage(driver)` | **Page transition** | Returns next page after action |
+| `By.cssSelector("[data-testid='x']")` | **Locator strategy** | Uses data-testid for stability |
+
+---
+
+### Step 5.2: Create HomePage.java
+
+1. Right-click on `com.traveleasy.pages` (in `src/main/java`)
+2. New → Java Class → `HomePage`
+3. Write this code:
+
+```java
+package com.traveleasy.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+public class HomePage extends BasePage {
+    
+    // Locators
+    private By welcomeMessage = By.cssSelector("[data-testid='welcome-message']");
+    private By logoutButton = By.cssSelector("[data-testid='logout-button']");
+    private By flightsLink = By.linkText("Flights");
+    private By busesLink = By.linkText("Buses");
+    
+    // Constructor
+    public HomePage(WebDriver driver) {
+        super(driver);
+    }
+    
+    // Check if user is logged in (welcome message visible)
+    public boolean isLoggedIn() {
+        return isDisplayed(welcomeMessage);
+    }
+    
+    // Get welcome message text
+    public String getWelcomeMessage() {
+        return getText(welcomeMessage);
+    }
+    
+    // Click logout
+    public LoginPage logout() {
+        click(logoutButton);
+        return new LoginPage(driver);
+    }
+    
+    // Navigate to flights
+    public void goToFlights() {
+        click(flightsLink);
+    }
+    
+    // Navigate to buses
+    public void goToBuses() {
+        click(busesLink);
+    }
+}
+```
+
+---
+
+### Step 5.3: Create LoginTest.java
+
+1. Right-click on `com.traveleasy.tests` (in `src/test/java`)
+2. New → Java Class → `LoginTest`
+3. Write this code:
+
+```java
+package com.traveleasy.tests;
+
+import com.traveleasy.base.BaseTest;
+import com.traveleasy.config.ConfigReader;
+import com.traveleasy.pages.HomePage;
+import com.traveleasy.pages.LoginPage;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class LoginTest extends BaseTest {
+    
+    @Test
+    public void testValidLogin() {
+        // Arrange
+        LoginPage loginPage = new LoginPage(driver);
+        String baseUrl = ConfigReader.getBaseUrl();
+        
+        // Act
+        loginPage.open(baseUrl);
+        HomePage homePage = loginPage.login(
+            ConfigReader.getTestEmail(),
+            ConfigReader.getTestPassword()
+        );
+        
+        // Assert
+        Assert.assertTrue(homePage.isLoggedIn(), "User should be logged in");
+    }
+    
+    @Test
+    public void testInvalidLogin() {
+        // Arrange
+        LoginPage loginPage = new LoginPage(driver);
+        String baseUrl = ConfigReader.getBaseUrl();
+        
+        // Act
+        loginPage.open(baseUrl);
+        loginPage.enterEmail("wrong@email.com");
+        loginPage.enterPassword("wrongpassword");
+        loginPage.clickLogin();
+        
+        // Assert
+        Assert.assertTrue(loginPage.isErrorDisplayed(), "Error message should be displayed");
+    }
+    
+    @Test
+    public void testLoginPageTitle() {
+        // Arrange
+        LoginPage loginPage = new LoginPage(driver);
+        
+        // Act
+        loginPage.open(ConfigReader.getBaseUrl());
+        String title = loginPage.getPageTitle();
+        
+        // Assert
+        System.out.println("Page Title: " + title);
+        Assert.assertNotNull(title, "Page title should not be null");
+    }
+}
+```
+
+---
+
+### 📚 Key Concepts in LoginTest
+
+| Code | Concept | Explanation |
+|------|---------|-------------|
+| `extends BaseTest` | **Inheritance** | Gets driver, setUp, tearDown |
+| `Assert.assertTrue()` | **TestNG Assertion** | Verifies condition is true |
+| `Assert.assertNotNull()` | **Null assertion** | Verifies object is not null |
+| `// Arrange, Act, Assert` | **AAA Pattern** | Test structure best practice |
+
+---
+
+## 🎯 Your Tasks
+
+1. ✅ Create `LoginPage.java` in `com.traveleasy.pages`
+2. ✅ Create `HomePage.java` in `com.traveleasy.pages`
+3. ✅ Create `LoginTest.java` in `com.traveleasy.tests`
+4. ⚠️ **Start TravelEasy app first** before running tests!
+5. ✅ Run `LoginTest`
