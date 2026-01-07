@@ -1342,3 +1342,528 @@ I encountered this issue when my Selenium tests failed after login - the browser
 | **Fix** | Use ChromeOptions to enable proper cookie handling |
 | **Real Example** | Login redirect failing due to URL-based sessions |
 
+
+# Phase 6: Advanced Features - Exact Conversation Notes
+
+---
+
+# Step 1: XPath Explained
+
+## What is XPath?
+XPath = **XML Path Language**. It's used to navigate through HTML elements to find them.
+
+## XPath Syntax Basics
+
+### Absolute XPath (❌ Avoid)
+```
+/html/body/div[1]/div[2]/form/input[1]
+```
+
+### Relative XPath (✅ Use This!)
+```
+//input[@id='email']
+```
+
+## Basic Syntax
+```
+//tagname[@attribute='value']
+```
+
+| Part | Meaning |
+|------|---------|
+| `//` | Search anywhere in document |
+| `tagname` | HTML tag (input, button, div) |
+| `@attribute` | Attribute name (id, class, name) |
+| `'value'` | Attribute value |
+
+## Common Examples
+| What You Want | XPath |
+|---------------|-------|
+| Input by ID | `//input[@id='email']` |
+| Button by class | `//button[@class='btn-login']` |
+| Link by text | `//a[text()='Login']` |
+| Contains (partial) | `//div[contains(@class, 'product')]` |
+
+## Using in Selenium
+```java
+By.xpath("//input[@id='email']")
+By.cssSelector(".product-card")
+```
+
+---
+
+# Step 2: Create ProductsPage.java
+
+## Location
+`D:\java\SeleniumFramework\src\main\java\com\traveleasy\pages\ProductsPage.java`
+
+## Locators for ProductsPage (based on actual HTML)
+| Element | Locator |
+|---------|---------|
+| Product cards | `By.cssSelector(".product-card")` |
+| Product title | `By.xpath("//div[@class='product-info']/h3")` |
+| Add to Cart | `By.cssSelector(".add-to-cart")` |
+
+## Template 
+```java
+package com.traveleasy.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+public class ProductsPage extends BasePage {
+
+    // TODO: Add locators
+    // Hint: Check http://localhost:8080/products for element IDs/classes
+    // You need locators for:
+    // - Product cards (class="product-card")
+    // - Product title (class="product-title" or similar)
+    // - Add to Cart button
+    // - Category filter links
+
+    // Constructor - call super(driver)
+    public ProductsPage(WebDriver driver) {
+        // TODO: Call parent constructor
+    }
+
+    // Open products page
+    public ProductsPage open(String baseUrl) {
+        // TODO: Navigate to baseUrl + "/products"
+        return this;
+    }
+
+    // Check if products are displayed
+    public boolean areProductsDisplayed() {
+        // TODO: Return true if product cards are visible
+        return false;
+    }
+
+    // Click on first product
+    public void clickFirstProduct() {
+        // TODO: Click the first product card
+    }
+
+    // Add product to cart
+    public ProductsPage addToCart() {
+        // TODO: Click add to cart button
+        return this;
+    }
+}
+```
+
+## Code Review Feedback I Gave:
+- Variable names should be **lowercase** (`productCard` not `ProductCard`)
+- Add `private` to locators
+- Remove unused imports
+
+---
+
+# Step 3: Create CartPage.java
+
+## Location
+`D:\java\SeleniumFramework\src\main\java\com\traveleasy\pages\CartPage.java`
+
+## Locators for CartPage
+| Element | Locator |
+|---------|---------|
+| Empty cart div | `By.cssSelector(".cart-empty")` |
+| Cart items | `By.cssSelector(".cart-item")` |
+| Checkout button | `By.cssSelector(".checkout-btn")` |
+
+## Template 
+```java
+package com.traveleasy.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+public class CartPage extends BasePage {
+    
+    // TODO: Add locators here
+    
+    // Constructor
+    public CartPage(WebDriver driver) {
+        // TODO
+    }
+    
+    // Open cart page
+    public CartPage open(String baseUrl) {
+        // TODO: Navigate to baseUrl + "/cart"
+    }
+    
+    // Check if cart is empty
+    public boolean isCartEmpty() {
+        // TODO: Return true if empty cart div is displayed
+    }
+    
+    // Check if cart has items
+    public boolean hasItems() {
+        // TODO: Return true if cart items are displayed
+    }
+    
+    // Get item count
+    public int getItemCount() {
+        // TODO: Return number of items (hint: use findElements and .size())
+    }
+    
+    // Click checkout
+    public void clickCheckout() {
+        // TODO: Click checkout button
+    }
+}
+```
+
+## Bug to ignore
+```java
+// WRONG - XPath syntax in cssSelector!
+By.cssSelector("//h2[text()='Your cart is empty!']")
+
+// CORRECT - Use xpath() for XPath syntax
+By.xpath("//h2[text()='Your cart is empty!']")
+```
+
+---
+
+# Step 4: Create ProductsTest.java
+
+## Template
+```java
+package com.traveleasy.tests;
+
+import com.traveleasy.base.BaseTest;
+import com.traveleasy.config.ConfigReader;
+import com.traveleasy.pages.ProductsPage;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class ProductsTest extends BaseTest {
+
+    @Test
+    public void testProductsPageDisplaysProducts() {
+        // TODO: Create ProductsPage, open it, verify products are displayed
+    }
+
+    @Test
+    public void testClickFirstProduct() {
+        // TODO: Click first product and verify navigation
+    }
+}
+```
+
+## My Review Feedback:
+Your tests were missing **assertions**! Without assertions, the test will always "pass".
+
+```java
+// Wrong - no assertion
+productPage.areProductsDisplayed();
+
+// Correct - with assertion
+Assert.assertTrue(productPage.areProductsDisplayed(), 
+    "Products should be displayed on the page");
+```
+
+---
+
+# Q&A: Does Assertion Show Message on Success?
+
+**Your Question:** Does assertion give any message when succeeded?
+
+**My Answer:** **No!** Assertions are **silent on success**. They only speak when they fail.
+
+```java
+Assert.assertTrue(condition, "Error message if fails");
+```
+
+| Condition | What Happens |
+|-----------|--------------|
+| `true` (Pass) | Nothing! Silent. Test continues. ✅ |
+| `false` (Fail) | Throws `AssertionError` with your message ❌ |
+
+If you want success messages:
+```java
+Assert.assertTrue(displayed, "Products should be displayed");
+System.out.println("✅ Test passed: Products are displayed!");
+```
+
+---
+
+# Step 5: Create CartTest.java
+
+## Template
+```java
+package com.traveleasy.tests;
+
+import com.traveleasy.base.BaseTest;
+import com.traveleasy.config.ConfigReader;
+import com.traveleasy.pages.CartPage;
+import com.traveleasy.pages.ProductsPage;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class CartTest extends BaseTest {
+
+    @Test
+    public void testEmptyCart() {
+        // Open cart page directly
+        // Assert that cart is empty
+    }
+
+    @Test
+    public void testAddItemToCart() {
+        // 1. Open products page
+        // 2. Add a product to cart
+        // 3. Open cart page
+        // 4. Assert cart has items
+    }
+}
+```
+
+---
+
+# Step 6: Data-Driven Testing (DataProvider)
+
+## What is DataProvider?
+Runs the same test multiple times with different data.
+
+## How It Works - Visual
+```
+DataProvider Array:
+┌─────────────────────────────────────────────────────┐
+│ Row 0: ["test@example.com", "password123", true]    │
+│ Row 1: ["wrong@email.com", "wrongpass", false]      │
+│ Row 2: ["", "password123", false]                   │
+│ Row 3: ["test@example.com", "", false]              │
+└─────────────────────────────────────────────────────┘
+                    │
+                    ▼
+Test runs 4 times:
+  Run 1: email="test@example.com", shouldPass=true
+  Run 2: email="wrong@email.com", shouldPass=false
+  Run 3: email="", shouldPass=false
+  Run 4: email="test@example.com", password="", shouldPass=false
+```
+
+## Code  to Add to LoginTest.java
+```java
+@DataProvider(name = "loginData")
+public Object[][] getLoginData() {
+    return new Object[][] {
+        {"test@example.com", "password123", true},   // Valid login
+        {"wrong@email.com", "wrongpass", false},     // Invalid login
+        {"", "password123", false},                   // Empty email
+        {"test@example.com", "", false}              // Empty password
+    };
+}
+
+@Test(dataProvider = "loginData")
+public void testLoginWithMultipleData(String email, String password, boolean shouldPass) {
+    LoginPage loginPage = new LoginPage(driver);
+    loginPage.open(ConfigReader.getBaseUrl());
+    loginPage.enterEmail(email);
+    loginPage.enterPassword(password);
+    
+    if (shouldPass) {
+        loginPage.clickLogin();
+        HomePage homePage = new HomePage(driver);
+        Assert.assertTrue(homePage.isLoggedIn(), "Login should succeed");
+    } else {
+        loginPage.clickLoginExpectingError();
+        Assert.assertTrue(loginPage.isErrorDisplayed(), "Error should show");
+    }
+}
+```
+
+## Import to Add
+```java
+import org.testng.annotations.DataProvider;
+```
+
+
+# Q&A: HTML5 Form Validation
+
+** Question:** For empty email/password, the website asks to provide the field instead of showing error.
+
+** Answer:** That's **HTML5 form validation** (browser-level). When email/password is empty, the browser shows its own validation popup:
+```
+"Please fill in this field"
+```
+
+This happens **before** the form is submitted, so:
+- The form never reaches the server
+- No custom error message from the app
+- Our assertion `isErrorDisplayed()` fails!
+
+**Fix:** Update DataProvider to only 2 rows:
+```java
+@DataProvider(name = "loginData")
+public Object[][] getLoginData() {
+    return new Object[][] {
+        {"test@example.com", "password123", true},   // Valid login
+        {"wrong@email.com", "wrongpass", false}      // Invalid login
+    };
+}
+```
+
+---
+
+# Step 7: ExtentReports Integration
+
+## Step 7.1: Create ExtentReportManager.java
+
+**Location:** `D:\java\SeleniumFramework\src\main\java\com\traveleasy\utils\ExtentReportManager.java`
+
+## Complete Code 
+```java
+package com.traveleasy.utils;
+
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+
+public class ExtentReportManager {
+    private static ExtentReports extent;
+    private static ExtentTest test;
+
+    public static ExtentReports getInstance() {
+        if (extent == null) {
+            ExtentSparkReporter spark = new ExtentSparkReporter("test-output/ExtentReport.html");
+            spark.config().setDocumentTitle("ShopEasy Test Report");
+            spark.config().setReportName("Automation Test Results");
+            
+            extent = new ExtentReports();
+            extent.attachReporter(spark);
+            extent.setSystemInfo("Tester", "Prashant Rathod");
+            extent.setSystemInfo("Environment", "QA");
+        }
+        return extent;
+    }
+
+    public static ExtentTest createTest(String testName) {
+        test = getInstance().createTest(testName);
+        return test;
+    }
+
+    public static void flush() {
+        if (extent != null) {
+            extent.flush();
+        }
+    }
+}
+```
+
+## Step 7.2: Update BaseTest.java
+
+## Complete Updated BaseTest.java Code
+```java
+package com.traveleasy.base;
+
+import com.traveleasy.config.ConfigReader;
+import com.traveleasy.utils.ExtentReportManager;
+import com.aventstack.extentreports.ExtentTest;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.ITestResult;
+import org.testng.annotations.*;
+
+import java.time.Duration;
+
+public class BaseTest {
+    protected WebDriver driver;
+    protected ExtentTest extentTest;
+
+    @BeforeMethod
+    public void setUp(ITestResult result) {
+        // Create ExtentTest for this test method
+        extentTest = ExtentReportManager.createTest(result.getMethod().getMethodName());
+        
+        String browser = ConfigReader.getBrowser();
+        switch (browser.toLowerCase()) {
+            case "chrome":
+                ChromeOptions options = new ChromeOptions();
+                options.addArguments("--disable-blink-features=AutomationControlled");
+                driver = new ChromeDriver(options);
+                break;
+            case "firefox":
+                driver = new FirefoxDriver();
+                break;
+            case "edge":
+                driver = new EdgeDriver();
+                break;
+            default:
+                driver = new ChromeDriver();
+        }
+
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+    }
+
+    @AfterMethod
+    public void tearDown(ITestResult result) {
+        // Log test result to ExtentReports
+        if (result.getStatus() == ITestResult.FAILURE) {
+            extentTest.fail("Test Failed: " + result.getThrowable().getMessage());
+        } else if (result.getStatus() == ITestResult.SUCCESS) {
+            extentTest.pass("Test Passed");
+        } else {
+            extentTest.skip("Test Skipped");
+        }
+        
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+
+    @AfterSuite
+    public void tearDownSuite() {
+        ExtentReportManager.flush();  // Generate the report!
+    }
+}
+```
+
+## Key Changes Explained:
+1. Added `ITestResult result` parameter to get test name
+2. Created `extentTest` for each test
+3. Log pass/fail/skip in `@AfterMethod`
+4. `flush()` in `@AfterSuite` to generate the HTML report
+
+## After Running Tests
+Open: `test-output/ExtentReport.html`
+
+---
+
+# ExtentReports Explained
+
+## What is ExtentReports?
+Creates beautiful HTML test reports instead of console output.
+
+## Three Key Components
+| Component | Purpose |
+|-----------|---------|
+| ExtentReports | Main engine that collects test data |
+| ExtentSparkReporter | Converts data to HTML format |
+| ExtentTest | Represents one test case |
+
+## Architecture
+```
+Tests Run → ExtentReportManager → ExtentSparkReporter → HTML Report
+```
+
+## Key Points
+- `flush()` MUST be called to generate the HTML file
+- Report saved at `test-output/ExtentReport.html`
+
+---
+
+# Interview Questions
+
+## Q: How do you write XPath?
+"I use the syntax `//tagname[@attribute='value']`. For partial matches, I use `contains()`. For example, `//div[contains(@class, 'product')]`."
+
+## Q: What is DataProvider in TestNG?
+"DataProvider allows running the same test with different data sets. It returns a 2D Object array where each row is one test execution."
+
+## Q: What is ExtentReports?
+"ExtentReports generates HTML test reports with dashboards and pass/fail charts. I integrate it with TestNG's BeforeMethod and AfterMethod. Must call flush() at end to generate the file."
