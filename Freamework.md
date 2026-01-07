@@ -1867,3 +1867,419 @@ Tests Run → ExtentReportManager → ExtentSparkReporter → HTML Report
 
 ## Q: What is ExtentReports?
 "ExtentReports generates HTML test reports with dashboards and pass/fail charts. I integrate it with TestNG's BeforeMethod and AfterMethod. Must call flush() at end to generate the file."
+
+
+# Phase 7: Complete Code Changes Tutorial
+
+This document contains all the complete file changes made during Phase 7.
+Follow these steps in order to implement all features.
+
+---
+
+# File 1: ScreenshotUtil.java (NEW FILE)
+
+**Location:** `src/main/java/com/traveleasy/utils/ScreenshotUtil.java`
+
+**Create this complete file:**
+
+```java
+package com.traveleasy.utils;
+
+import com.traveleasy.pages.BasePage;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+
+public class ScreenshotUtil {
+
+    // Take screenshot and return as Base64 (for embedding in report)
+    public static String takeScreenshotAsBase64(WebDriver driver) {
+        TakesScreenshot ts = (TakesScreenshot) driver;
+        return ts.getScreenshotAs(OutputType.BASE64);
+    }
+
+    // Take screenshot at failure point and save to file
+    public static String takeScreenshot(WebDriver driver, String testName) {
+        File screenshotDir = new File("screenshots");
+        if (!screenshotDir.exists()) {
+            screenshotDir.mkdirs();
+        }
+
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+        String fileName = testName + "_FAILURE_" + timestamp + ".png";
+
+        TakesScreenshot ts = (TakesScreenshot) driver;
+        File source = ts.getScreenshotAs(OutputType.FILE);
+        File destination = new File(screenshotDir, fileName);
+
+        try {
+            Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Failure screenshot saved: " + destination.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Failed to save screenshot: " + e.getMessage());
+        }
+
+        return destination.getAbsolutePath();
+    }
+
+    // Save all step screenshots (only call on failure)
+    public static List<StepScreenshotData> saveStepScreenshots(String testName) {
+        List<StepScreenshotData> savedData = new ArrayList<>();
+        
+        File screenshotDir = new File("screenshots/" + testName);
+        if (!screenshotDir.exists()) {
+            screenshotDir.mkdirs();
+        }
+
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+        
+        int stepNumber = 1;
+        for (BasePage.StepScreenshot step : BasePage.stepScreenshots) {
+            String fileName = String.format("Step_%02d_%s.png", stepNumber, timestamp);
+            File destination = new File(screenshotDir, fileName);
+            
+            try {
+                Files.copy(step.screenshot.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                
+                // Read file as Base64 for embedding in report
+                byte[] fileContent = Files.readAllBytes(destination.toPath());
+                String base64 = Base64.getEncoder().encodeToString(fileContent);
+                
+                savedData.add(new StepScreenshotData(stepNumber, step.description, base64, destination.getAbsolutePath()));
+                System.out.println("Step " + stepNumber + " saved: " + step.description);
+            } catch (IOException e) {
+                System.out.println("Failed to save step screenshot: " + e.getMessage());
+            }
+            stepNumber++;
+        }
+        
+        System.out.println("Total " + savedData.size() + " step screenshots saved");
+        return savedData;
+    }
+
+    // Data class to hold step screenshot info
+    public static class StepScreenshotData {
+        public int stepNumber;
+        public String description;
+        public String base64Image;
+        public String filePath;
+
+        public StepScreenshotData(int stepNumber, String description, String base64Image, String filePath) {
+            this.stepNumber = stepNumber;
+            this.description = description;
+            this.base64Image = base64Image;
+            this.filePath = filePath;
+        }
+    }
+}
+```
+
+---
+
+# File 2: BasePage.java (UPDATED)
+
+**Location:** `src/main/java/com/traveleasy/pages/BasePage.java`
+
+**Replace entire file with:**
+
+```java
+package com.traveleasy.pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.io.File;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BasePage {
+
+    protected WebDriver driver;
+    protected WebDriverWait wait;
+    
+    // Store step screenshots in memory (only saved if test fails)
+    public static List<StepScreenshot> stepScreenshots = new ArrayList<>();
+
+    // Inner class to store screenshot with description
+    public static class StepScreenshot {
+        public File screenshot;
+        public String description;
+        
+        public StepScreenshot(File screenshot, String description) {
+            this.screenshot = screenshot;
+            this.description = description;
+        }
+    }
+
+    public BasePage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+    }
+
+    // Capture screenshot at current step
+    private void captureStepScreenshot(String action) {
+        try {
+            TakesScreenshot ts = (TakesScreenshot) driver;
+            File screenshot = ts.getScreenshotAs(OutputType.FILE);
+            stepScreenshots.add(new StepScreenshot(screenshot, action));
+        } catch (Exception e) {
+            System.out.println("Could not capture step screenshot: " + e.getMessage());
+        }
+    }
+
+    // Clear screenshots (call before each test)
+    public static void clearStepScreenshots() {
+        stepScreenshots.clear();
+    }
+
+    protected void click(By locator) {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).click();
+        captureStepScreenshot("Click on: " + locator.toString());
+    }
+
+    protected void type(By locator, String text) {
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        element.clear();
+        element.sendKeys(text);
+        captureStepScreenshot("Type '" + text + "' in: " + locator.toString());
+    }
+
+    protected String getText(By locator) {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
+        captureStepScreenshot("Get text from: " + locator.toString());
+        return text;
+    }
+
+    protected boolean isDisplayed(By locator) {
+        try {
+            boolean displayed = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+            captureStepScreenshot("Check displayed: " + locator.toString());
+            return displayed;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    protected void navigateTo(String url) {
+        driver.get(url);
+        captureStepScreenshot("Navigate to: " + url);
+    }
+
+    public String getPageTitle() {
+        return driver.getTitle();
+    }
+}
+```
+
+---
+
+# File 3: BaseTest.java (UPDATED)
+
+**Location:** `src/test/java/com/traveleasy/base/BaseTest.java`
+
+**Replace entire file with:**
+
+```java
+package com.traveleasy.base;
+
+import com.traveleasy.config.ConfigReader;
+import com.traveleasy.pages.BasePage;
+import com.traveleasy.utils.ExtentReportManager;
+import com.traveleasy.utils.ScreenshotUtil;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.MediaEntityBuilder;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.ITestResult;
+import org.testng.annotations.*;
+
+import java.time.Duration;
+import java.util.List;
+
+public class BaseTest {
+    protected WebDriver driver;
+    protected ExtentTest extentTest;
+
+    @BeforeMethod
+    public void setUp(ITestResult result) {
+        // Clear step screenshots from previous test
+        BasePage.clearStepScreenshots();
+        
+        extentTest = ExtentReportManager.createTest(result.getMethod().getMethodName());
+        String browser = ConfigReader.getBrowser();
+        switch (browser.toLowerCase()) {
+            case "chrome":
+                ChromeOptions options = new ChromeOptions();
+                options.addArguments("--enable-cookies");
+                options.addArguments("--disable-blink-features=AutomationControlled");
+                driver = new ChromeDriver(options);
+                break;
+            case "firefox":
+                driver = new FirefoxDriver();
+                break;
+            case "edge":
+                driver = new EdgeDriver();
+                break;
+            default:
+                driver = new ChromeDriver();
+        }
+
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+    }
+
+    @AfterMethod
+    public void tearDown(ITestResult result) {
+        String testName = result.getMethod().getMethodName();
+        
+        if (result.getStatus() == ITestResult.FAILURE) {
+            // Log failure message
+            extentTest.fail("Test Failed: " + result.getThrowable().getMessage());
+            
+            // Save and attach ALL step screenshots to report
+            List<ScreenshotUtil.StepScreenshotData> stepData = ScreenshotUtil.saveStepScreenshots(testName);
+            
+            for (ScreenshotUtil.StepScreenshotData step : stepData) {
+                try {
+                    // Attach each step screenshot to report using Base64
+                    extentTest.info("Step " + step.stepNumber + ": " + step.description,
+                        MediaEntityBuilder.createScreenCaptureFromBase64String(step.base64Image).build());
+                } catch (Exception e) {
+                    extentTest.info("Step " + step.stepNumber + ": " + step.description + " (screenshot failed)");
+                }
+            }
+            
+            // Take and attach failure screenshot
+            String failureBase64 = ScreenshotUtil.takeScreenshotAsBase64(driver);
+            try {
+                extentTest.fail("Final State at Failure",
+                    MediaEntityBuilder.createScreenCaptureFromBase64String(failureBase64).build());
+            } catch (Exception e) {
+                extentTest.info("Could not attach failure screenshot");
+            }
+            
+            // Also save to file for reference
+            ScreenshotUtil.takeScreenshot(driver, testName);
+            
+        } else if (result.getStatus() == ITestResult.SUCCESS) {
+            extentTest.pass("Test Passed");
+        } else {
+            extentTest.skip("Test Skipped");
+        }
+        
+        // Clear step screenshots after each test
+        BasePage.clearStepScreenshots();
+        
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+
+    @AfterSuite
+    public void tearDownSuite() {
+        ExtentReportManager.flush();
+    }
+}
+```
+
+---
+
+# File 4: testng.xml (NEW FILE)
+
+**Location:** Project root (`D:\java\SeleniumFramework\testng.xml`)
+
+**Create this file:**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="ShopEasy Test Suite" parallel="tests" thread-count="3">
+
+    <test name="Login Tests">
+        <classes>
+            <class name="com.traveleasy.tests.LoginTest"/>
+        </classes>
+    </test>
+
+    <test name="Products Tests">
+        <classes>
+            <class name="com.traveleasy.tests.ProductsTest"/>
+        </classes>
+    </test>
+
+    <test name="Cart Tests">
+        <classes>
+            <class name="com.traveleasy.tests.CartTest"/>
+        </classes>
+    </test>
+
+</suite>
+```
+
+---
+
+# Jenkins Setup Steps
+
+## 1. Download Jenkins
+- Go to: https://www.jenkins.io/download/
+- Download Windows LTS `.msi` installer
+
+## 2. Install Jenkins
+- Run installer
+- Use port **8081** (if 8080 is taken)
+- Select JDK 17 or 21
+- Select "Run as LocalSystem"
+
+## 3. Initial Setup
+1. Open: http://localhost:8081
+2. Get password: `C:\ProgramData\Jenkins\.jenkins\secrets\initialAdminPassword`
+3. Install suggested plugins
+4. Create admin user
+
+## 4. Create Job
+1. Click "New Item"
+2. Name: `SeleniumFramework`
+3. Select "Freestyle project" → OK
+
+## 5. Configure Build
+1. Go to "Build Steps"
+2. Add "Execute Windows batch command"
+3. Enter:
+```batch
+cd /d D:\java\SeleniumFramework
+mvn clean test -DsuiteXmlFile=testng.xml
+```
+4. Save
+
+## 6. Run
+Click "Build Now" to run tests
+
+---
+
+# Summary of Changes
+
+| File | Action | Purpose |
+|------|--------|---------|
+| ScreenshotUtil.java | NEW | Screenshot capture utilities |
+| BasePage.java | UPDATED | Added step screenshot capture |
+| BaseTest.java | UPDATED | Save screenshots on failure |
+| testng.xml | NEW | Test suite configuration |
