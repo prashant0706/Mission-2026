@@ -1320,6 +1320,17 @@ public class LoginTest extends BaseTest {
 > It's especially useful when testing applications that have bot-detection mechanisms."
 
 ---
+Q: What is the difference between cookie-based and URL-based session tracking?
+
+A: "Both are ways to maintain user sessions since HTTP is stateless.
+
+Cookie-based stores the session ID in a browser cookie (JSESSIONID). It's more secure because the session ID is sent in HTTP headers, not visible in the URL, and can't be accidentally shared.
+
+URL-based appends the session ID to every URL like /page;jsessionid=ABC123. It's a fallback used when cookies are blocked. It's less secure because the session can be shared through copied URLs.
+
+I encountered this issue when my Selenium tests failed after login - the browser was blocking cookies, so the app used URL-based sessions which created malformed URLs. I fixed it by configuring ChromeOptions to make the browser behave like a normal user's browser."
+
+
 
 ## 📝 Summary for Interview
 
