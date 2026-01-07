@@ -1228,3 +1228,106 @@ public class LoginTest extends BaseTest {
 3. ✅ Create `LoginTest.java` in `com.traveleasy.tests`
 4. ⚠️ **Start TravelEasy app first** before running tests!
 5. ✅ Run `LoginTest`
+
+## Q1: "What is ChromeOptions in Selenium?"
+
+> **Answer:** "ChromeOptions is a class in Selenium that allows us to customize Chrome browser behavior before launching it. We can set arguments like headless mode, disable notifications, set download paths, handle SSL certificates, enable/disable features, and configure browser preferences.
+>
+> For example:
+> ```java
+> ChromeOptions options = new ChromeOptions();
+> options.addArguments("--headless");           // Run without UI
+> options.addArguments("--disable-notifications"); // Block popups
+> driver = new ChromeDriver(options);
+> ```
+>
+> It's essential for CI/CD pipelines where we run tests in headless mode, and for handling real-world scenarios like cookies, SSL, and downloads."
+
+---
+
+## Q2: "Can you share a real scenario where you used ChromeOptions?"
+
+> **Answer:** "Yes! In my project, after a successful login, the application was redirecting to a URL with `jsessionid` appended, like `http://localhost:8080/;jsessionid=XYZ`. This caused a 404 error.
+>
+> When I tested manually, it worked fine. After debugging, I realized that Selenium's Chrome browser wasn't accepting cookies properly, so the application fell back to **URL-based session tracking** instead of **cookie-based session tracking**.
+>
+> I fixed it by adding ChromeOptions:
+> ```java
+> ChromeOptions options = new ChromeOptions();
+> options.addArguments("--disable-blink-features=AutomationControlled");
+> driver = new ChromeDriver(options);
+> ```
+>
+> This made the browser behave more like a regular user's browser, and cookies worked correctly."
+
+---
+
+## Q3: "What is the difference between cookie-based and URL-based sessions?"
+
+> **Answer:**
+>
+> | Cookie-Based Session | URL-Based Session |
+> |---------------------|-------------------|
+> | Session ID stored in browser cookie | Session ID appended to URL |
+> | `Cookie: JSESSIONID=ABC123` | `/page;jsessionid=ABC123` |
+> | More secure | Less secure (URL can be shared/logged) |
+> | Used when cookies are enabled | Fallback when cookies are blocked |
+>
+> Selenium sometimes blocks cookies by default, so servers use URL-rewriting as a fallback. That's why we configure ChromeOptions to enable proper cookie handling."
+
+---
+
+## Q4: "What are common ChromeOptions you've used?"
+
+> **Answer:** "Here are the most common ones I use:
+>
+> ```java
+> ChromeOptions options = new ChromeOptions();
+> 
+> // 1. Headless mode (for CI/CD)
+> options.addArguments("--headless");
+> 
+> // 2. Disable notifications
+> options.addArguments("--disable-notifications");
+> 
+> // 3. Maximize window
+> options.addArguments("--start-maximized");
+> 
+> // 4. Disable 'Chrome is being controlled' banner
+> options.addArguments("--disable-blink-features=AutomationControlled");
+> 
+> // 5. Incognito mode
+> options.addArguments("--incognito");
+> 
+> // 6. Disable GPU (for Linux servers)
+> options.addArguments("--disable-gpu");
+> 
+> // 7. Accept insecure certificates
+> options.setAcceptInsecureCerts(true);
+> ```"
+
+---
+
+## Q5: "What does `--disable-blink-features=AutomationControlled` do?"
+
+> **Answer:** "This option removes the automation-detection features that Chrome uses to identify automated browsers. Many websites detect Selenium tests by checking the `navigator.webdriver` property which is set to `true` when Chrome runs in automation mode.
+>
+> By disabling this feature:
+> - The browser appears more like a regular user's browser
+> - Some websites won't block or behave differently with your tests
+> - Cookies and sessions work more naturally
+>
+> It's especially useful when testing applications that have bot-detection mechanisms."
+
+---
+
+## 📝 Summary for Interview
+
+| Concept | Key Points |
+|---------|------------|
+| **ChromeOptions** | Customize Chrome before launching |
+| **Headless** | `--headless` for CI/CD |
+| **Session Issue** | jsessionid in URL = cookies blocked |
+| **Fix** | Use ChromeOptions to enable proper cookie handling |
+| **Real Example** | Login redirect failing due to URL-based sessions |
+
